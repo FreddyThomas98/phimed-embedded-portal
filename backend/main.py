@@ -95,6 +95,26 @@ class SQLiteConnWrapper:
         self._conn.close()
 
 
+def get_active_sqlite_path():
+    """Return the active SQLite DB path. On Vercel, copy to /tmp to avoid read-only filesystem issues."""
+    if os.environ.get("VERCEL"):
+        import shutil
+        tmp_db = "/tmp/phimed.db"
+        if not os.path.exists(tmp_db):
+            if os.path.exists(SQLITE_DB_PATH):
+                shutil.copy(SQLITE_DB_PATH, tmp_db)
+            elif os.path.exists(SQLITE_SEED_PATH):
+                conn = sqlite3.connect(tmp_db)
+                with open(SQLITE_SEED_PATH, "r", encoding="utf-8") as f:
+                    conn.executescript(f.read())
+                conn.commit()
+                conn.close()
+        return tmp_db
+
+    ensure_sqlite_db()
+    return SQLITE_DB_PATH
+
+
 def ensure_sqlite_db():
     """Ensure phimed.db exists; if not, initialize it from seed.sql automatically."""
     if not os.path.exists(SQLITE_DB_PATH) and os.path.exists(SQLITE_SEED_PATH):
@@ -122,8 +142,8 @@ def get_db_connection():
         return pyodbc.connect(connection_string)
 
     # Default: SQLite
-    ensure_sqlite_db()
-    conn = sqlite3.connect(SQLITE_DB_PATH)
+    db_path = get_active_sqlite_path()
+    conn = sqlite3.connect(db_path)
     conn.row_factory = AttrRow
     return SQLiteConnWrapper(conn)
 
