@@ -1,0 +1,24 @@
+# Virtual Environment
+venv/
+backend/venv/
+env/
+.venv/
+
+# Environment Variables & Secrets (DO NOT COMMIT)
+.env
+backend/.env
+*.env
+
+# Python Cache
+__pycache__/
+backend/__pycache__/
+*.py[cod]
+*$py.class
+
+# Windows / OS files
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# SQL Server local backup (optional, seed.sql is used instead)
+DB Backup/*.bak
